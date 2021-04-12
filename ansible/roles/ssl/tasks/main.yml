@@ -1,0 +1,49 @@
+  - name: make sure SSL certificate is installed
+    copy:
+      content: '{{ ssl_certificate }}'
+      dest: /home/{{ default_user }}/.certs/cert.pem
+      owner: root
+      group: root
+      mode: 0644
+  - name: make sure SSL private key is installed
+    copy:
+      content: '{{ ssl_private_key }}'
+      dest: /home/{{ default_user }}/.certs/key.pem
+      owner: root
+      group: root
+      mode: 0600
+    no_log: true
+  - name: Create .certs
+    file:
+      path: '/home/{{ default_user }}/.certs'
+      state: directory
+      mode: '0755'
+      owner: "{{ default_user }}"
+      group: "{{ default_user }}"
+  - name: Create .config
+    file:
+      path: '/home/{{ default_user }}/.config'
+      state: directory
+      mode: '0755'
+      owner: "{{ default_user }}"
+      group: "{{ default_user }}"
+  - name: Copy over configuration files
+    copy:
+      src: '{{ item }}'
+      dest: "/home/{{ default_user }}/.config/"
+      owner: "{{ default_user }}"
+      group: "{{ default_user }}"
+      mode: '0644'
+      force: true
+    loop:
+        - "conf/common_location.conf"
+        - "conf/common.conf"
+        - "conf/ssl.conf"
+  - name: Copy over configuration files
+    template:
+      src: conf/nginx.conf.j2
+      dest: "/home/{{ default_user }}/.config/nginx.conf"
+      owner: "{{ default_user }}"
+      group: "{{ default_user }}"
+      mode: '0644'
+      force: true

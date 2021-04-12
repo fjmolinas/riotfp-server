@@ -1,0 +1,9 @@
+---
+- hosts: all
+  remote_user: root
+  become: true
+  roles:
+    - ssl
+  vars_files:
+    - vars/default.yml
+    - vars/certificate.yml

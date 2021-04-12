@@ -1,0 +1,8 @@
+---
+- name: Common Configurations
+  hosts: all
+  roles:
+    - common
+  vars_files:
+    - vars/default.yml
+  become: true

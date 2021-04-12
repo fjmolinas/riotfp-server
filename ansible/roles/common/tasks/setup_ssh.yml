@@ -1,0 +1,39 @@
+---
+- name: Create ~/.ssh
+  file:
+    path: '{{ HOME }}/.ssh'
+    state: directory
+    mode: '0700'
+
+- name: Copy authorized_keys
+  copy:
+    src: 'authorized_keys'
+    dest: '{{ HOME }}/.ssh/authorized_keys'
+    force: yes
+    mode: '0600'
+
+- name: Disable password authentication for root
+  become: yes
+  lineinfile:
+    path: '/etc/ssh/sshd_config'
+    state: present
+    regexp: '^#?PermitRootLogin'
+    line: "PermitRootLogin prohibit-password"
+
+- name: Add SSH banner
+  template:
+    src: ssh/banner.j2
+    dest: /etc/issue.net
+    owner: root
+    group: root
+    mode: 0644
+  when: ssh_custom_banner
+
+- name: Enable SSH banner
+  lineinfile:
+    dest: /etc/ssh/sshd_config
+    regexp: "^#?Banner"
+    line: "Banner /etc/issue.net"
+    state: present
+  when: ssh_custom_banner
+  notify: Restart ssh

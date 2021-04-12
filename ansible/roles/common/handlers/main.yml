@@ -1,0 +1,12 @@
+---
+- block:
+  - name: Reload firewall
+    ufw:
+      state: reloaded
+
+- name: Restart ssh
+  service:
+    name: ssh
+    state: restarted
+
+  become: yes

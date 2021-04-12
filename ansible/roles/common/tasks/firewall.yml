@@ -1,0 +1,15 @@
+---
+- block:
+  - name: Allow specific ports connections
+    ufw:
+      rule: allow
+      port: "{{ item.port }}"
+      proto: "{{ item.proto }}"
+    with_items:
+      - "{{ allowed_ports }}"
+
+  - name: Enable firewall
+    ufw:
+      state: enabled
+      policy: deny
+  become: yes

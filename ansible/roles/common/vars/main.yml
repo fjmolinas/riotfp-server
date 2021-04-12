@@ -1,0 +1,7 @@
+---
+default_user: admin
+ansible_user: admin
+ansible_python_interpreter: /usr/bin/python3
+
+HOME: "{{ansible_env.HOME}}"
+

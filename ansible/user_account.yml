@@ -1,0 +1,46 @@
+---
+- hosts: all
+  remote_user: root
+  become: true
+  vars_files:
+    - vars/default.yml
+
+  vars_prompt:
+    - name: "password"
+      prompt: "Enter a password for the \"admin\" user"
+      private: yes
+      encrypt: "md5_crypt"
+      confirm: yes
+      salt_size: 7
+      salt: "foo"
+
+  tasks:
+    - name: Create non-root user
+      user:
+        name: "{{ default_user }}"
+        password: "{{ password }}"
+        shell: '/bin/bash'
+        create_home: true
+        groups: sudo   # Empty by default.
+
+    - name: Disable password authentication for root
+      lineinfile:
+        path: '/etc/ssh/sshd_config'
+        state: present
+        regexp: '^#?PermitRootLogin'
+        line: "PermitRootLogin prohibit-password"
+
+    - name: Add remote keys
+      authorized_key:
+        user: "{{ default_user }}"
+        state: present
+        key: "{{ lookup('file', item) }}"
+      with_items:
+        - "{{ ssh_public_keys }}"
+
+    - name: Create openssh_keypair
+      openssh_keypair:
+        path: '/home/{{ default_user }}/.ssh/id_rsa'
+        owner: "{{ default_user }}"
+        group: "{{ default_user }}"
+        mode: 0644

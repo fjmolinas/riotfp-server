@@ -1,0 +1,48 @@
+events {
+
+}
+
+http {
+
+  server {
+    server_name {{ server_hostname }};
+    listen 443 ssl;
+
+    include common.conf;
+    include ssl.conf;
+
+    location / {
+      proxy_pass http://dashboard:{{ dashboard_port }};
+      include common_location.conf;
+    }
+
+    location /ws {
+      proxy_pass http://broker:{{ broker_port }}/ws;
+      include common_location.conf;
+
+      # WebSocket support (nginx 1.4)
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection "upgrade";
+    }
+
+    location /gw {
+      proxy_pass http://broker:{{ broker_port }}/gw;
+      include common_location.conf;
+
+      # WebSocket support (nginx 1.4)
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection "upgrade";
+    }
+
+  }
+
+  server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name _;
+    return 301 https://$host$request_uri;
+  }
+
+}

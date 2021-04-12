@@ -1,0 +1,12 @@
+---
+- name: Create .pyaiot
+  file:
+    path: '{{ HOME }}/.pyaiot'
+    state: directory
+    mode: '0755'
+
+- name: Create empty key file
+  file:
+    path: '{{ HOME }}/.pyaiot/keys'
+    mode: '0644'
+    state: touch

@@ -1,0 +1,52 @@
+name: deploy
+
+on:
+  push:
+    branches: master
+    paths:
+      - .github/workflows/deploy.yml
+      - docker/ssl/*
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy pyaiot dashboard & broker server
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_TLS_VERIFY: "True"
+      DOCKER_HOST: "tcp://${{ secrets.DOCKER_HOST }}:2376"
+      DOCKER_CERT_PATH: "certs"
+      DOCKERHUB_REGISTRY: "${{ secrets.DOCKERHUB_REGISTRY }}"
+      PYAIOT_KEYS: "${{ secrets.PYAIOT_KEYS }}"
+      SERVER_NGINX_CONFIG: "${{ secrets.SERVER_NGINX_CONFIG }}"
+      SERVER_CERTS: "${{ secrets.SERVER_CERTS }}"
+      SERVER_URI: "${{ secrets.SERVER_URI }}"
+      SERVER_GOOGLE_API_KEYS: "${{ secrets.SERVER_GOOGLE_API_KEYS }}"
+      DASHBOARD_TITLE: "${{ secrets.DASHBOARD_TITLE }}"
+      CAMERA_URL:
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: setup certificates
+        run: |
+          mkdir ${DOCKER_CERT_PATH}
+          echo "${{ secrets.CA }}" > ${DOCKER_CERT_PATH}/ca.pem
+          echo "${{ secrets.CLIENT_CERTIFICATE }}" > ${DOCKER_CERT_PATH}/cert.pem
+          echo "${{ secrets.CLIENT_KEY }}" > ${DOCKER_CERT_PATH}/key.pem
+        shell: bash
+
+      - name: pull newest images
+        run: |
+          docker-compose -f docker/ssl/docker-compose.yml pull
+
+      - name: up/down
+        run: |
+          docker-compose -f docker/ssl/docker-compose.yml down
+          docker-compose -f docker/ssl/docker-compose.yml up -d
+
+      - name: cleanup certificates
+        run: |
+          rm -rf ${DOCKER_CERT_PATH}
+        shell: bash

@@ -1,0 +1,14 @@
+---
+- block:
+  - name: Update Apt Cache
+    apt:
+      update_cache: yes
+    tags: installation
+
+  - name: Install Common packages
+    apt:
+      name: "{{ required_packages }}"
+      state: latest
+    tags: installation, packages
+
+  become: yes

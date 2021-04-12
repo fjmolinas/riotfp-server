@@ -1,0 +1,27 @@
+---
+# Packages
+required_packages:
+  - curl
+  - git
+  - tmux
+  - ufw
+
+# Optional configurations
+with_vim: true
+
+# You can enable sudo access without password for specific users.
+# This is not the default behavior.
+server_sudo_nopasswd_users:
+  - "{{ default_user }}"
+
+# See roles/common/templates/ssh/banner.j2
+ssh_custom_banner: True
+
+allowed_ports:
+  - { port: 22, proto: 'tcp' }      # ssh
+  ## pyaiot ports
+  - { port: "{{ broker_port }}", proto: 'tcp' }    # pyaiot broker
+  - { port: "{{ dashboard_port }}", proto: 'tcp' } # pyaiot dashboard
+  ## required ports when setting up a docker-machine
+  - { port: 2376, proto: 'tcp' }    # docker daemon encrypted
+  - { port: 2375, proto: 'tcp' }    # docker daemon unencryted
