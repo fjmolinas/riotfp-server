@@ -2,6 +2,11 @@
 # tasks file for roles/common
 - include: setup_ssh.yml
   tags: ssh
+- include: sudoers_nopasswd.yml
+  with_items: "{{ server_sudo_nopasswd_users }}"
+  loop_control:
+    loop_var: nopasswd_user
+  when: server_sudo_nopasswd_users is defined
 - include: install_tools.yml
   tags: pkg
 - include: firewall.yml
@@ -9,14 +14,10 @@
 - include: docker.yml
   tags: docker
 - include: riotfp.yml
+  when: with_riotfp
   tags: riotfp
 
 # Optional tasks
 - include: vim.yml
   when: with_vim
 
-- include: sudoers_nopasswd.yml
-  with_items: "{{ server_sudo_nopasswd_users }}"
-  loop_control:
-    loop_var: nopasswd_user
-  when: server_sudo_nopasswd_users is defined

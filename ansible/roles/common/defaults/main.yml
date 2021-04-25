@@ -8,6 +8,7 @@ required_packages:
 
 # Optional configurations
 with_vim: true
+with_riotfp: true
 
 # You can enable sudo access without password for specific users.
 # This is not the default behavior.

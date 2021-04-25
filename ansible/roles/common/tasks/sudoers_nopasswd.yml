@@ -5,6 +5,6 @@
       path: /etc/sudoers
       state: present
       regexp: "^%{{ nopasswd_user }} ALL="
-      line: "%{{ nopasswd_user }} ALL=(ALL) NOPASSWD: ALL"
+      line: "%{{ nopasswd_user }} ALL=NOPASSWD: ALL"
       validate: '/usr/sbin/visudo -cf %s'
   become: yes
