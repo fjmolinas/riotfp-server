@@ -1,0 +1,10 @@
+---
+default_user: admin
+ansible_user: admin
+ansible_python_interpreter: /usr/bin/python3
+
+HOME: "{{ansible_env.HOME}}"
+
+listen_port: 51820
+wg_subnet: 10.33.44.
+wg_server_ip: 10.33.44.1

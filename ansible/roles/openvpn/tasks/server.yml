@@ -1,0 +1,47 @@
+---
+- name: Ansible check file exists.
+  stat:
+    path: "{{ HOME }}/openvpn-ca/pki/issued/{{ server_name }}.crt"
+  register: server_stat
+
+- name: "Build server certificate"
+  shell: >
+    ./easyrsa build-server-full {{ server_name }} nopass;
+  args:
+    chdir: "{{ HOME }}/openvpn-ca/"
+    executable: /bin/bash
+  when: server_stat.stat.exists == False
+
+- block:
+  - name: "Copy key and certificates to /etc/openvpn"
+    copy:
+      remote_src: yes
+      src: "{{ HOME }}/openvpn-ca/pki/{{ item }}"
+      dest: "/etc/openvpn/"
+    with_items:
+      - "ca.crt"
+      - "ta.key"
+      - "dh.pem"
+      - "issued/{{ server_name }}.crt"
+      - "private/{{ server_name }}.key"
+
+  - name: "Copy server Config file"
+    copy:
+      force: yes
+      remote_src: yes
+      src: /usr/share/doc/openvpn/examples/sample-config-files/server.conf
+      dest: /etc/openvpn/{{ server_name }}.conf
+
+  - name: Adjust OpenVPN server configuration
+    lineinfile:
+      dest: "/etc/openvpn/{{ server_name }}.conf"
+      regexp: "^{{ item.regex | regex_escape() }}"
+      line: "{{ item.value }}"
+    with_items:
+      - { regex: 'ca ca.crt', value: 'ca ca.crt' }
+      - { regex: 'cert server.crt', value: 'cert {{ server_name }}.crt' }
+      - { regex: 'key server.key', value: 'key {{ server_name }}.key' }
+      - { regex: 'dh dh2048.pem', value: 'dh dh.pem' }
+      - { regex: 'server 10.8.0.0 255.255.255.0', value: 'server {{server_subnet}} {{server_mask}}' }
+
+  become: yes

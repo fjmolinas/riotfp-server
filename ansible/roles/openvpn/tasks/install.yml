@@ -1,0 +1,12 @@
+---
+- block:
+  - name: Update Apt Cache
+    apt:
+      update_cache: yes
+    tags: installation
+
+  - name: "Install openvpn"
+    apt:
+      name: [openvpn, easy-rsa]
+      state: present
+  become: yes

@@ -1,0 +1,47 @@
+---
+- block:
+  - name: Configuration IP forwarding
+    sysctl:
+      name: net.ipv4.ip_forward
+      value: '1'
+      state: present
+
+  - name: Add ufw before content
+    blockinfile:
+      path: /etc/ufw/before.rules
+      insertbefore: BOF
+      content: |
+        # NAT table rules
+        *nat
+        :POSTROUTING ACCEPT [0:0]
+        -A POSTROUTING -s {{server_subnet}}/8 -o eth0 -j MASQUERADE
+        COMMIT
+
+  - name: Customize ufw forwarding policy
+    lineinfile:
+      line: "DEFAULT_FORWARD_POLICY=\"ACCEPT\""
+      path: "/etc/default/ufw"
+      regexp: "^DEFAULT_FORWARD_POLICY=\"DROP\""
+
+  - name: Open ufw ports for openvpn and ssh
+    shell:  ufw allow openvpn && ufw allow OpenSSH
+
+  - name: Firewall allow Openvpn and OpenSSH
+    ufw:
+      rule: allow
+      name: "{{ item}}"
+    with_items:
+      - 'openvpn'
+      - 'OpenSSH'
+
+  - name: Enable firewall
+    ufw:
+      state: enabled
+
+  - name: Start openvpn systemd service
+    systemd:
+      name: openvpn@server
+      state: started
+      daemon_reload: yes
+      enabled: yes
+  become: yes

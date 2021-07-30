@@ -1,0 +1,6 @@
+---
+- include: install.yml
+- include: ca_authority.yml
+  tags: [ 'never', 'ca_authority' ]
+- include: server.yml
+- include: configure.yml

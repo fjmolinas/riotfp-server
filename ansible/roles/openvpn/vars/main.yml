@@ -1,0 +1,10 @@
+---
+default_user: admin
+ansible_user: admin
+ansible_python_interpreter: /usr/bin/python3
+
+HOME: "{{ansible_env.HOME}}"
+
+server_name: server
+server_subnet: '10.44.33.0'
+server_mask: '255.255.255.0'

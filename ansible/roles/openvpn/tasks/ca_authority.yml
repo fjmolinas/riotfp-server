@@ -1,0 +1,45 @@
+---
+- name: "Remove CA directory"
+  file:
+    state: absent
+    path: "{{ HOME }}/openvpn-ca/"
+
+- name: "Create CA dir"
+  command: make-cadir {{ HOME }}/openvpn-ca
+
+- name: Customize CA variable configuration
+  lineinfile:
+    dest: "{{ HOME }}/openvpn-ca/vars"
+    regexp: "^{{ item.property | regex_escape() }}="
+    line: "{{ item.property }}={{ item.value }}"
+  with_items:
+    - { property: 'set_var EASYRSA_REQ_COUNTRY', value: '"FR"' }
+    - { property: 'set_var EASYRSA_REQ_PROVINCE', value: '"ISERE"' }
+    - { property: 'set_var EASYRSA_REQ_CITY', value: '"GRENOBLE"' }
+    - { property: 'set_var EASYRSA_REQ_ORG', value: '"Copyleft Certificate Co"' }
+    - { property: 'set_var EASYRSA_REQ_EMAIL', value: '"francois-xavier.molina@inria.fr"' }
+    - { property: 'set_var EASYRSA_REQ_OU', value: '"TRIBE"' }
+
+- name: "Build the certificate authority"
+  shell: >
+    echo yes | ./easyrsa clean-all;
+    echo yes | ./easyrsa init-pki;
+    dd if=/dev/urandom of=pki/.rnd bs=256 count=1;
+    EASYRSA_REQ_CN=vpn.machine.dev ./easyrsa --batch build-ca nopass
+  args:
+    chdir: "{{ HOME }}/openvpn-ca/"
+    executable: /bin/bash
+
+- name: Ansible check file exists.
+  stat:
+    path: "{{ HOME }}/openvpn-ca/pki/dh.pem"
+  register: dh_stat
+
+- name: "Build Diffie-Hellman parameters and key generation"
+  shell: >
+    ./easyrsa gen-dh;
+    openvpn --genkey --secret pki/ta.key;
+  args:
+    chdir: "{{ HOME }}/openvpn-ca/"
+    executable: /bin/bash
+  when: dh_stat.stat.exists == False
